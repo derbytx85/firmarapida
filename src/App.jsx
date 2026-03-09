@@ -226,7 +226,10 @@ const API = {
 
     loginWithGoogle: async () => {
         if (!API.isConfigured()) {
-            window.alert('Configura SUPABASE_URL y KEY para usar Google Auth.');
+            const missing = [];
+            if (!import.meta.env.VITE_SUPABASE_URL) missing.push('VITE_SUPABASE_URL');
+            if (!import.meta.env.VITE_SUPABASE_ANON_KEY) missing.push('VITE_SUPABASE_ANON_KEY');
+            window.alert(`Error de Configuración: Faltan las variables [${missing.join(', ')}] en Vercel.`);
             return;
         }
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
