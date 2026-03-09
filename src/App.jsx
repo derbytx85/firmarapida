@@ -1265,6 +1265,7 @@ export default function FirmaRapida() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
                 setAuth(true);
+                setView('dashboard');
                 loadDocs();
             } else {
                 setAuth(false);
@@ -1333,7 +1334,7 @@ export default function FirmaRapida() {
         <>
             <style>{css}</style>
             {!auth ? (
-                <LandingPage onLogin={handleLogin} dark={dark} setDark={setDark} />
+                <LandingPage onLogin={handleLogin} onLoginWithGoogle={API.loginWithGoogle} dark={dark} setDark={setDark} />
             ) : (
                 <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout}>
                     {view === 'dashboard' && <Dashboard docs={docs} setView={setView} setCurrentDoc={setCurrentDoc} onNewDoc={handleNewDoc} />}
