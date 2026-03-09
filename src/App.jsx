@@ -1291,8 +1291,9 @@ export default function FirmaRapida() {
     const [auth, setAuth] = useState(false);
     const [isDemo, setIsDemo] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
+    const [initializing, setInitializing] = useState(true);
     const [view, setView] = useState('dashboard');
-    const [docs, setDocs] = useState(DEMO_DOCS);
+    const [docs, setDocs] = useState([]);
     const [currentDoc, setCurrentDoc] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(true);
     const [toast, setToast] = useState(null);
@@ -1311,19 +1312,23 @@ export default function FirmaRapida() {
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
                 setAuth(true);
+                setIsDemo(false);
                 setView('dashboard');
                 loadDocs();
             }
+            setInitializing(false);
         });
 
         // Escuchar cambios de sesión
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
                 setAuth(true);
+                setIsDemo(false);
                 setView('dashboard');
                 loadDocs();
             } else {
                 setAuth(false);
+                setIsDemo(false);
                 setView('landing');
             }
         });
@@ -1399,6 +1404,16 @@ export default function FirmaRapida() {
         setView('dashboard');
         showToast('Documento enviado correctamente');
     };
+
+    if (initializing) return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F7F9FC' }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 40, marginBottom: 20, animation: 'pulse 1.5s infinite' }}>⚡</div>
+                <div style={{ fontWeight: 600, color: '#1B2A6B' }}>Cargando FirmaRápida...</div>
+            </div>
+            <style>{css}</style>
+        </div>
+    );
 
     return (
         <>
