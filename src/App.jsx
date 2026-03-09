@@ -324,9 +324,9 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
                     </button>
                     <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={onLogin}>Iniciar sesión</button>
                     <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 700 }} onClick={() => API.loginWithGoogle()}>
-                        <Icon name="layout" size={16} /> Google
+                        <Icon name="log-in" size={16} /> Google
                     </button>
-                    <button className="btn btn-green" onClick={onLogin}>Empieza gratis</button>
+                    <button className="btn btn-green" onClick={() => API.loginWithGoogle()}>Empieza gratis</button>
                 </div>
             </nav>
 
@@ -344,11 +344,11 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
                         La plataforma de firma electrónica más simple para PYMEs y freelancers en Chile y Latinoamérica. Sin filas, sin trámites, sin letra chica.
                     </p>
                     <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 28px' }} onClick={onLogin}>
-                            🚀 Empieza gratis — sin tarjeta
+                        <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 28px' }} onClick={() => API.loginWithGoogle()}>
+                            🚀 Empieza gratis ahora
                         </button>
                         <button className="btn" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', fontSize: 16, padding: '14px 28px' }} onClick={() => { const el = document.getElementById('como-funciona'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
-                            Ver demo
+                            Ver funciones
                         </button>
                     </div>
                     <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 13, marginTop: 16 }}>
@@ -421,8 +421,8 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
             <div style={{ background: 'linear-gradient(135deg,#1B2A6B,#0f1d4d)', padding: '64px 32px', textAlign: 'center' }}>
                 <h2 style={{ color: '#fff', fontSize: 32, fontWeight: 800, marginBottom: 16 }}>¿Listo para firmar sin papel?</h2>
                 <p style={{ color: 'rgba(255,255,255,.7)', marginBottom: 32 }}>Empieza gratis hoy. 10 documentos al mes, para siempre.</p>
-                <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 32px' }} onClick={onLogin}>
-                    Crear cuenta gratis ⚡
+                <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 32px' }} onClick={() => API.loginWithGoogle()}>
+                    Crear cuenta con Google ⚡
                 </button>
             </div>
 
@@ -1292,7 +1292,11 @@ export default function FirmaRapida() {
 
     const handleLogin = async (email, pass) => {
         try {
-            const data = await API.login(email || 'empresa@demo.cl', pass || 'password');
+            if (!email || !pass) {
+                // Si no hay credenciales, forzamos Google Login o mostramos error
+                return API.loginWithGoogle();
+            }
+            const data = await API.login(email, pass);
             setAuth(true);
             setView('dashboard');
             showToast('¡Bienvenido de nuevo!');
