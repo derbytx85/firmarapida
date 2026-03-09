@@ -232,7 +232,12 @@ const API = {
             window.alert(`Error de Configuración: Faltan las variables [${missing.join(', ')}] en Vercel.`);
             return;
         }
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
         if (error) throw error;
     },
 
