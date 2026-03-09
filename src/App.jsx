@@ -1249,6 +1249,31 @@ export default function FirmaRapida() {
         try { localStorage.setItem('fr_theme', dark ? 'dark' : 'light'); } catch { }
     }, [dark]);
 
+    // Listener para autenticación (Supabase + Google)
+    useEffect(() => {
+        if (!supabase) return;
+
+        // 1. Verificar si ya hay una sesión activa al cargar
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setAuth(true);
+                loadDocs();
+            }
+        });
+
+        // 2. Escuchar cambios (Login / Logout / Redirect de Google)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                setAuth(true);
+                loadDocs();
+            } else {
+                setAuth(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
     // Page Title Dinámico
     useEffect(() => {
         const titles = {
