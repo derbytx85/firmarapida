@@ -300,9 +300,65 @@ const StatusBadge = ({ status }) => {
 };
 
 /* ──────────────────────────────────────────────
+   MODAL DE LOGIN
+   ────────────────────────────────────────────── */
+const LoginModal = ({ onLogin, onClose }) => {
+    const [email, setEmail] = useState('');
+    const [pass, setPass] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onLogin(email, pass);
+            onClose();
+        } catch (err) {
+            alert(err.message || 'Error al iniciar sesión');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20 }}>
+            <div className="card fade-in" style={{ width: '100%', maxWidth: 400, padding: 32, position: 'relative' }}>
+                <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray-400)' }}>
+                    <Icon name="x" size={20} />
+                </button>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>⚡</div>
+                    <h2 style={{ fontWeight: 800, color: 'var(--primary)' }}>Bienvenido de nuevo</h2>
+                    <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Ingresa tus credenciales para continuar</p>
+                </div>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                        <label className="label">Correo electrónico</label>
+                        <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" />
+                    </div>
+                    <div>
+                        <label className="label">Contraseña</label>
+                        <input className="input" type="password" required value={pass} onChange={e => setPass(e.target.value)} placeholder="••••••••" />
+                    </div>
+                    <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
+                        {loading ? 'Iniciando sesión...' : 'Entrar ahora'}
+                    </button>
+                </form>
+                <div style={{ marginTop: 24, padding: '16px 0', borderTop: '1px solid var(--gray-100)', textAlign: 'center' }}>
+                    <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 16 }}>O accede rápidamente con:</p>
+                    <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }} onClick={() => API.loginWithGoogle()}>
+                        <Icon name="log-in" size={16} /> Continuar con Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ──────────────────────────────────────────────
    LANDING PAGE
    ────────────────────────────────────────────── */
-const LandingPage = ({ onLogin, dark, setDark }) => {
+const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
     const steps = [
         { icon: 'upload', title: 'Sube tu documento', desc: 'PDF, DOC o DOCX. O elige una plantilla lista para usar.' },
         { icon: 'send', title: 'Envía a los firmantes', desc: 'El firmante recibe un link único. Sin crear cuenta.' },
@@ -322,11 +378,11 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
                     <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={() => setDark(!dark)}>
                         <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Claro' : 'Oscuro'}
                     </button>
-                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={onLogin}>Iniciar sesión</button>
+                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={onShowLogin}>Iniciar sesión</button>
                     <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 700 }} onClick={() => API.loginWithGoogle()}>
                         <Icon name="log-in" size={16} /> Google
                     </button>
-                    <button className="btn btn-green" onClick={() => API.loginWithGoogle()}>Empieza gratis</button>
+                    <button className="btn btn-green" onClick={onStartDemo}>Empieza gratis</button>
                 </div>
             </nav>
 
@@ -344,7 +400,7 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
                         La plataforma de firma electrónica más simple para PYMEs y freelancers en Chile y Latinoamérica. Sin filas, sin trámites, sin letra chica.
                     </p>
                     <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 28px' }} onClick={() => API.loginWithGoogle()}>
+                        <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 28px' }} onClick={onStartDemo}>
                             🚀 Empieza gratis ahora
                         </button>
                         <button className="btn" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', fontSize: 16, padding: '14px 28px' }} onClick={() => { const el = document.getElementById('como-funciona'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
@@ -392,7 +448,7 @@ const LandingPage = ({ onLogin, dark, setDark }) => {
                                     </li>
                                 ))}
                             </ul>
-                            <button className={`btn ${p.featured ? 'btn-green' : 'btn-primary'}`} style={{ width: '100%', justifyContent: 'center' }} onClick={onLogin}>
+                            <button className={`btn ${p.featured ? 'btn-green' : 'btn-primary'}`} style={{ width: '100%', justifyContent: 'center' }} onClick={onStartDemo}>
                                 {p.name === 'Empresa' ? 'Solicitar cotización' : 'Comenzar'}
                             </button>
                         </div>
@@ -1233,6 +1289,8 @@ export default function FirmaRapida() {
         try { return localStorage.getItem('fr_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches; } catch { return false; }
     });
     const [auth, setAuth] = useState(false);
+    const [isDemo, setIsDemo] = useState(false);
+    const [showLogin, setShowLogin] = useState(false);
     const [view, setView] = useState('dashboard');
     const [docs, setDocs] = useState(DEMO_DOCS);
     const [currentDoc, setCurrentDoc] = useState(null);
@@ -1292,28 +1350,39 @@ export default function FirmaRapida() {
 
     const handleLogin = async (email, pass) => {
         try {
-            if (!email || !pass) {
-                // Si no hay credenciales, forzamos Google Login o mostramos error
-                return API.loginWithGoogle();
-            }
             const data = await API.login(email, pass);
             setAuth(true);
+            setIsDemo(false);
             setView('dashboard');
             showToast('¡Bienvenido de nuevo!');
             loadDocs();
         } catch (e) {
             showToast(e.message, 'error');
+            throw e; // Relanzar para el modal
         }
+    };
+
+    const handleStartDemo = () => {
+        setAuth(true);
+        setIsDemo(true);
+        setView('dashboard');
+        setDocs(DEMO_DOCS);
+        showToast('Modo Prueba activado', 'info');
     };
 
     const handleLogout = async () => {
         await API.logout();
         setAuth(false);
+        setIsDemo(false);
         setView('landing');
         showToast('Sesión cerrada correctamente', 'info');
     };
 
     const loadDocs = async () => {
+        if (isDemo) {
+            setDocs(DEMO_DOCS);
+            return;
+        }
         try {
             const data = await API.getDocuments();
             setDocs(data);
@@ -1335,7 +1404,7 @@ export default function FirmaRapida() {
         <>
             <style>{css}</style>
             {!auth ? (
-                <LandingPage onLogin={handleLogin} dark={dark} setDark={setDark} />
+                <LandingPage onShowLogin={() => setShowLogin(true)} onStartDemo={handleStartDemo} dark={dark} setDark={setDark} />
             ) : (
                 <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout}>
                     {view === 'dashboard' && <Dashboard docs={docs} setView={setView} setCurrentDoc={setCurrentDoc} onNewDoc={handleNewDoc} />}
@@ -1347,6 +1416,7 @@ export default function FirmaRapida() {
                     {showOnboarding && view === 'dashboard' && <OnboardingTooltip onClose={() => setShowOnboarding(false)} />}
                 </AppShell>
             )}
+            {showLogin && <LoginModal onLogin={handleLogin} onClose={() => setShowLogin(false)} />}
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
         </>
     );
