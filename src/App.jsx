@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import logo from './assets/logo.png';
+import icon from './assets/icon.png';
 
 /* ──────────────────────────────────────────────
    PALETA & TIPOGRAFÍA
@@ -8,7 +10,7 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#F7F9FC;color:#1B2A6B}
+body{font-family:'Inter',sans-serif;background:#F7F9FC;color:#1B2A6B;overflow-x:hidden}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#CBD5E0;border-radius:3px}
 .dark body{background:#0F172A;color:#E2E8F0}
 
@@ -26,7 +28,7 @@ body{font-family:'Inter',sans-serif;background:#F7F9FC;color:#1B2A6B}
 }
 
 /* Utilities */
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all .2s}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:#14206b;transform:translateY(-1px);box-shadow:0 6px 20px rgba(27,42,107,.3)}
 .btn-green{background:var(--green);color:#fff}
@@ -56,22 +58,41 @@ body{font-family:'Inter',sans-serif;background:#F7F9FC;color:#1B2A6B}
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
 /* Sidebar */
-.sidebar{width:220px;min-height:100vh;background:var(--primary);padding:24px 16px;display:flex;flex-direction:column;gap:4px;position:fixed;top:0;left:0;z-index:50}
-.sidebar-logo{font-size:20px;font-weight:800;color:#fff;padding:0 8px 20px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:8px}
+.sidebar{width:220px;min-height:100vh;background:var(--primary);padding:24px 16px;display:flex;flex-direction:column;gap:4px;position:fixed;top:0;left:0;z-index:1000;transition:transform 0.3s ease}
+.sidebar-logo{font-size:20px;font-weight:800;color:#fff;padding:0 8px 10px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
 .sidebar-item:hover,.sidebar-item.active{background:rgba(255,255,255,.15);color:#fff}
 .sidebar-item svg{flex-shrink:0}
-.main-content{margin-left:220px;padding:32px;min-height:100vh;background:var(--gray-50)}
+.main-content{margin-left:220px;padding:32px;min-height:100vh;background:var(--gray-50);transition:margin-left 0.3s ease}
 .dark .main-content{background:#0F172A}
 
-/* Table */
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{text-align:left;padding:12px 16px;color:var(--gray-400);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--gray-100)}
-td{padding:14px 16px;border-bottom:1px solid var(--gray-100);color:var(--gray-600)}
-.dark th{border-color:#334155;color:#64748B}
-.dark td{border-color:#334155;color:#94A3B8}
-tr:hover td{background:var(--gray-50)}
-.dark tr:hover td{background:#1E293B}
+/* Mobile Header */
+.mobile-header{display:none;height:64px;background:var(--white);padding:0 20px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:900;box-shadow:0 2px 10px rgba(0,0,0,0.05)}
+.dark .mobile-header{background:#1E293B}
+
+/* Table Card for Mobile */
+.mobile-card-row{display:none;flex-direction:column;gap:12px;margin-bottom:16px;padding:16px;border:1px solid var(--gray-100);border-radius:12px;background:var(--white)}
+.dark .mobile-card-row{background:#1E293B;border-color:#334155}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .main-content{margin-left:0;padding:20px}
+    .mobile-header{display:flex}
+    .hide-mobile{display:none !important}
+}
+
+@media (max-width: 640px) {
+    .section-title{font-size:20px}
+    .card{padding:16px}
+    table thead{display:none}
+    table tbody tr{display:flex;flex-direction:column;padding:16px;border-bottom:1px solid var(--gray-100);gap:8px}
+    table td{padding:0;border:none;display:flex;justify-content:space-between;align-items:center}
+    table td::before{content:attr(data-label);font-weight:600;color:var(--gray-400);font-size:12px}
+    .price-card{padding:20px}
+    .hero-bg h1{font-size:28px !important}
+}
 
 /* Steps */
 .step-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
@@ -179,7 +200,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
             zIndex: 2000, display: 'flex', alignItems: 'center', gap: 12,
             padding: '12px 20px', borderRadius: '12px', background: s.bg,
-            borderLeft: `5px solid ${s.border}`, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+            borderLeft: `5px solid ${s.border} `, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
             animation: 'slideUp 0.3s ease-out'
         }}>
             <Icon name={s.icon} color={s.border} size={20} />
@@ -188,8 +209,8 @@ const Toast = ({ message, type = 'success', onClose }) => {
                 <Icon name="x" size={14} />
             </button>
             <style>{`
-                @keyframes slideUp { from { transform: translate(-50%, 40px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-            `}</style>
+@keyframes slideUp { from { transform: translate(-50 %, 40px); opacity: 0; } to { transform: translate(-50 %, 0); opacity: 1; } }
+`}</style>
         </div>
     );
 };
@@ -224,17 +245,20 @@ const API = {
     },
 
     loginWithGoogle: async () => {
-        if (!API.isConfigured()) {
-            window.alert('Configura SUPABASE_URL y KEY para usar Google Auth.');
+        if (!supabase) {
+            alert("Supabase no está configurado. Revisa SUPABASE_URL y SUPABASE_ANON_KEY.");
             return;
         }
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin
-            }
-        });
-        if (error) throw error;
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) throw error;
+        } catch (err) {
+            console.error('Google Login Error:', err);
+            alert(`Error de Google Auth: ${err.message || 'Error desconocido'}. Asegúrate de que los popups no estén bloqueados.`);
+        }
     },
 
     logout: async () => {
@@ -296,7 +320,7 @@ const StatusBadge = ({ status }) => {
         draft: { label: 'Borrador', cls: 'badge-blue' },
     };
     const m = map[status] || { label: status, cls: 'badge-blue' };
-    return <span className={`badge ${m.cls}`}>{m.label}</span>;
+    return <span className={`badge ${m.cls} `}>{m.label}</span>;
 };
 
 /* ──────────────────────────────────────────────
@@ -372,22 +396,22 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
     return (
         <div>
             {/* NAV */}
-            <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(27,42,107,0.97)', backdropFilter: 'blur(12px)', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
-                <div style={{ color: '#fff', fontWeight: 800, fontSize: 20 }}>FirmaRápida ⚡</div>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={() => setDark(!dark)}>
-                        <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Claro' : 'Oscuro'}
+            <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(27,42,107,0.97)', backdropFilter: 'blur(12px)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, flexWrap: 'wrap' }}>
+                <img src={logo} style={{ height: 36, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button className="btn btn-ghost hide-mobile" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px' }} onClick={() => setDark(!dark)}>
+                        <Icon name={dark ? 'sun' : 'moon'} size={14} />
                     </button>
-                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)' }} onClick={onShowLogin}>Iniciar sesión</button>
-                    <button className="btn" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 700 }} onClick={() => API.loginWithGoogle()}>
-                        <Icon name="log-in" size={16} /> Google
+                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px', fontSize: 13 }} onClick={onShowLogin}>Login</button>
+                    <button className="btn hide-mobile" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 700, padding: '8px 12px', fontSize: 13 }} onClick={() => API.loginWithGoogle()}>
+                        Google
                     </button>
-                    <button className="btn btn-green" onClick={onStartDemo}>Empieza gratis</button>
+                    <button className="btn btn-green" style={{ padding: '8px 16px', fontSize: 13 }} onClick={onStartDemo}>Empieza</button>
                 </div>
             </nav>
 
             {/* HERO */}
-            <div className="hero-bg" style={{ padding: '80px 32px 60px', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <div className="hero-bg" style={{ padding: '60px 20px', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                 <div style={{ maxWidth: 720 }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
                         <div className="trust-badge"><Icon name="shield" size={14} />Ley 19.799 Chile</div>
@@ -448,7 +472,7 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
                                     </li>
                                 ))}
                             </ul>
-                            <button className={`btn ${p.featured ? 'btn-green' : 'btn-primary'}`} style={{ width: '100%', justifyContent: 'center' }} onClick={onStartDemo}>
+                            <button className={`btn ${p.featured ? 'btn-green' : 'btn-primary'} `} style={{ width: '100%', justifyContent: 'center' }} onClick={onStartDemo}>
                                 {p.name === 'Empresa' ? 'Solicitar cotización' : 'Comenzar'}
                             </button>
                         </div>
@@ -516,7 +540,7 @@ const SidebarItem = ({ id, icon, label, active, onClick }) => {
         <div
             role="button"
             tabIndex={0}
-            className={`sidebar-item ${active ? 'active' : ''}`}
+            className={`sidebar - item ${active ? 'active' : ''} `}
             onClick={onClick}
             onKeyDown={handleKeyDown}
             aria-current={active ? 'page' : undefined}
@@ -526,7 +550,7 @@ const SidebarItem = ({ id, icon, label, active, onClick }) => {
     );
 };
 
-const AppShell = ({ view, setView, dark, setDark, onLogout, children }) => {
+const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSidebarOpen, children }) => {
     const items = [
         { id: 'dashboard', icon: 'home', label: 'Dashboard' },
         { id: 'templates', icon: 'layout', label: 'Plantillas' },
@@ -534,34 +558,47 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, children }) => {
         { id: 'settings', icon: 'settings', label: 'Configuración' },
     ];
     return (
-        <div>
-            <div className="sidebar">
-                <div className="sidebar-logo">FirmaRápida ⚡</div>
-                {items.map(item => (
-                    <SidebarItem
-                        key={item.id}
-                        id={item.id}
-                        icon={item.icon}
-                        label={item.label}
-                        active={view === item.id}
-                        onClick={() => setView(item.id)}
-                    />
-                ))}
-                <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.15)' }}>
-                    <div role="button" tabIndex={0} className="sidebar-item" onClick={() => setDark(!dark)} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setDark(!dark)}>
-                        <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Modo claro' : 'Modo oscuro'}
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <div className="mobile-header">
+                <img src={icon} style={{ height: 36, objectFit: 'contain' }} alt="FirmaRápida" />
+                <button className="btn btn-ghost" onClick={() => setSidebarOpen(true)} style={{ padding: 8, background: 'none' }}>
+                    <Icon name="layout" size={24} color="var(--primary)" />
+                </button>
+            </div>
+            <div style={{ display: 'flex', flex: 1 }}>
+                <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+                    <div className="sidebar-logo">
+                        <img src={logo} style={{ height: 32, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
+                        <button className="show-mobile btn btn-ghost" onClick={() => setSidebarOpen(false)} style={{ background: 'none', padding: 4, color: '#fff' }}>
+                            <Icon name="x" size={20} />
+                        </button>
                     </div>
-                    <div role="button" tabIndex={0} className="sidebar-item" onClick={onLogout} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && onLogout()}>
-                        <Icon name="logOut" size={16} />Cerrar sesión
-                    </div>
-                    <div style={{ padding: '12px', fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
-                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>empresa@demo.cl</div>
-                        <div>Plan Pro · 7/∞ docs</div>
-                        <div style={{ fontSize: 10, marginTop: 8, opacity: .7 }}>Un producto de Clever Tech Gloval Ideas</div>
+                    {items.map(item => (
+                        <SidebarItem
+                            key={item.id}
+                            id={item.id}
+                            icon={item.icon}
+                            label={item.label}
+                            active={view === item.id}
+                            onClick={() => { setView(item.id); setSidebarOpen(false); }}
+                        />
+                    ))}
+                    <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.15)' }}>
+                        <div role="button" tabIndex={0} className="sidebar-item" onClick={() => setDark(!dark)} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setDark(!dark)}>
+                            <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Modo claro' : 'Modo oscuro'}
+                        </div>
+                        <div role="button" tabIndex={0} className="sidebar-item" onClick={onLogout} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && onLogout()}>
+                            <Icon name="logOut" size={16} />Cerrar sesión
+                        </div>
+                        <div style={{ padding: '12px', fontSize: 11, color: 'rgba(255,255,255,.5)' }}>
+                            <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>empresa@demo.cl</div>
+                            <div>Plan Pro · 7/∞ docs</div>
+                        </div>
                     </div>
                 </div>
+                {sidebarOpen && <div className="show-mobile" onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }} />}
+                <main className="main-content" style={{ flex: 1 }}>{children}</main>
             </div>
-            <div className="main-content fade-in">{children}</div>
         </div>
     );
 };
@@ -642,15 +679,15 @@ const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc }) => {
                             <tbody>
                                 {filtered.map(doc => (
                                     <tr key={doc.id}>
-                                        <td>
+                                        <td data-label="Documento">
                                             <div style={{ fontWeight: 600, color: 'var(--primary)', fontSize: 14 }}>{doc.name}</div>
                                         </td>
-                                        <td>{doc.signers.map(s => s.name).join(', ')}</td>
-                                        <td><StatusBadge status={doc.status} /></td>
-                                        <td style={{ fontSize: 13 }}>{doc.sent}</td>
-                                        <td style={{ fontSize: 13 }}>{doc.expires}</td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        <td data-label="Firmantes">{doc.signers.map(s => s.name).join(', ')}</td>
+                                        <td data-label="Estado"><StatusBadge status={doc.status} /></td>
+                                        <td data-label="Enviado" style={{ fontSize: 13 }}>{doc.sent}</td>
+                                        <td data-label="Vence" style={{ fontSize: 13 }}>{doc.expires}</td>
+                                        <td data-label="Acciones">
+                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                 {doc.status === 'pending' && (
                                                     <>
                                                         <button className="btn btn-ghost" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => handleSign(doc)} aria-label={`Firmar ${doc.name}`}>
@@ -695,6 +732,7 @@ const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc }) => {
    NUEVO DOCUMENTO — WIZARD
    ────────────────────────────────────────────── */
 const NewDocWizard = ({ onDone, onCancel, initialTemplate }) => {
+    const fileInputRef = useRef(null);
     const [step, setStep] = useState(1);
     const [docName, setDocName] = useState(initialTemplate?.name || '');
     const [selectedTpl, setSelectedTpl] = useState(initialTemplate || null);
@@ -704,6 +742,11 @@ const NewDocWizard = ({ onDone, onCancel, initialTemplate }) => {
     const [expires, setExpires] = useState('7');
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) setDocName(file.name);
+    };
 
     const addSigner = () => setSigners(s => [...s, { name: '', email: '', phone: '', type: 'simple' }]);
     const updSigner = (i, k, v) => setSigners(s => s.map((x, j) => j === i ? { ...x, [k]: v } : x));
@@ -768,7 +811,9 @@ const NewDocWizard = ({ onDone, onCancel, initialTemplate }) => {
                         ))}
                     </div>
                     <p className="label">O sube tu propio documento</p>
+                    <input type="file" ref={fileInputRef} hidden onChange={handleFileSelect} accept=".pdf,.doc,.docx" />
                     <div onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setDocName(f.name); }}
+                        onClick={() => fileInputRef.current.click()}
                         style={{ border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--gray-200)'}`, borderRadius: 12, padding: 40, textAlign: 'center', background: dragOver ? 'rgba(27,42,107,.04)' : 'var(--gray-50)', cursor: 'pointer', transition: 'all .2s' }}>
                         <Icon name="upload" size={32} color="var(--gray-400)" />
                         <p style={{ color: 'var(--gray-400)', marginTop: 12 }}>Arrastra tu PDF, DOC o DOCX aquí</p>
@@ -1292,6 +1337,7 @@ export default function FirmaRapida() {
     const [isDemo, setIsDemo] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
     const [initializing, setInitializing] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [view, setView] = useState('dashboard');
     const [docs, setDocs] = useState([]);
     const [currentDoc, setCurrentDoc] = useState(null);
@@ -1314,7 +1360,7 @@ export default function FirmaRapida() {
                 setAuth(true);
                 setIsDemo(false);
                 setView('dashboard');
-                loadDocs();
+                loadDocs(false);
             }
             setInitializing(false);
         });
@@ -1325,7 +1371,7 @@ export default function FirmaRapida() {
                 setAuth(true);
                 setIsDemo(false);
                 setView('dashboard');
-                loadDocs();
+                loadDocs(false);
             } else {
                 setAuth(false);
                 setIsDemo(false);
@@ -1383,8 +1429,9 @@ export default function FirmaRapida() {
         showToast('Sesión cerrada correctamente', 'info');
     };
 
-    const loadDocs = async () => {
-        if (isDemo) {
+    const loadDocs = async (forceDemo = null) => {
+        const demoMode = forceDemo !== null ? forceDemo : isDemo;
+        if (demoMode) {
             setDocs(DEMO_DOCS);
             return;
         }
@@ -1408,7 +1455,7 @@ export default function FirmaRapida() {
     if (initializing) return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F7F9FC' }}>
             <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 20, animation: 'pulse 1.5s infinite' }}>⚡</div>
+                <img src={icon} style={{ height: 80, marginBottom: 20, animation: 'pulse 1.5s infinite' }} alt="FirmaRápida" />
                 <div style={{ fontWeight: 600, color: '#1B2A6B' }}>Cargando FirmaRápida...</div>
             </div>
             <style>{css}</style>
@@ -1421,7 +1468,7 @@ export default function FirmaRapida() {
             {!auth ? (
                 <LandingPage onShowLogin={() => setShowLogin(true)} onStartDemo={handleStartDemo} dark={dark} setDark={setDark} />
             ) : (
-                <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout}>
+                <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
                     {view === 'dashboard' && <Dashboard docs={docs} setView={setView} setCurrentDoc={setCurrentDoc} onNewDoc={handleNewDoc} />}
                     {view === 'newdoc' && <NewDocWizard initialTemplate={selectedTemplate} onDone={handleDocDone} onCancel={() => { setSelectedTemplate(null); setView('dashboard'); }} />}
                     {view === 'sign' && <SignView doc={currentDoc} onBack={() => setView('dashboard')} />}
