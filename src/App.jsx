@@ -76,22 +76,26 @@ body{font-family:'Inter',sans-serif;background:#F7F9FC;color:#1B2A6B;overflow-x:
 
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
-    .sidebar{transform:translateX(-100%)}
+    .sidebar{transform:translateX(-100%); width: 280px;}
     .sidebar.open{transform:translateX(0)}
     .main-content{margin-left:0;padding:20px}
     .mobile-header{display:flex}
     .hide-mobile{display:none !important}
+    .sidebar-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;display:block}
+}
+@media (min-width: 1025px) {
+    .sidebar-overlay{display:none}
 }
 
 @media (max-width: 640px) {
-    .section-title{font-size:20px}
+    .section-title{font-size:22px}
     .card{padding:16px}
     table thead{display:none}
     table tbody tr{display:flex;flex-direction:column;padding:16px;border-bottom:1px solid var(--gray-100);gap:8px}
     table td{padding:0;border:none;display:flex;justify-content:space-between;align-items:center}
     table td::before{content:attr(data-label);font-weight:600;color:var(--gray-400);font-size:12px}
     .price-card{padding:20px}
-    .hero-bg h1{font-size:28px !important}
+    .hero-bg h1{font-size:2rem !important}
 }
 
 /* Steps */
@@ -435,20 +439,23 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
     return (
         <div>
             {/* NAV */}
-            <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(27,42,107,0.97)', backdropFilter: 'blur(12px)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, flexWrap: 'wrap' }}>
-                <img src={logo} style={{ height: 36, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
+            <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(27,42,107,0.97)', backdropFilter: 'blur(12px)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <img src={logo} style={{ height: 32, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
+                    <span className="hide-mobile" style={{ color: '#fff', fontWeight: 800, fontSize: 18 }}>FirmaRápida ⚡</span>
+                </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <button className="btn btn-ghost hide-mobile" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px' }} onClick={() => setDark(!dark)}>
                         <Icon name={dark ? 'sun' : 'moon'} size={14} />
                     </button>
-                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px', fontSize: 13 }} onClick={onShowLogin}>Login</button>
+                    <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px', fontSize: 13 }} onClick={onShowLogin}>Acceder</button>
                     <GoogleButton
                         onClick={() => API.loginWithGoogle()}
                         text="Google"
                         style={{ width: 'auto', padding: '8px 16px', fontSize: '13px', display: 'flex' }}
                         className="hide-mobile"
                     />
-                    <button className="btn btn-green" style={{ padding: '8px 16px', fontSize: 13 }} onClick={onStartDemo}>Empieza</button>
+                    <button className="btn btn-green" style={{ padding: '8px 16px', fontSize: 13 }} onClick={onStartDemo}>Empezar Gratis</button>
                 </div>
             </nav>
 
@@ -610,41 +617,44 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
                 <button className="btn btn-ghost" onClick={() => setSidebarOpen(true)} style={{ padding: 8, background: 'none' }}>
                     <Icon name="layout" size={24} color="var(--primary)" />
                 </button>
+                <img src={logo} style={{ height: 28 }} alt="Logo" />
+                <div style={{ width: 40 }} /> {/* Spacer */}
             </div>
-            <div style={{ display: 'flex', flex: 1 }}>
-                <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                    <div className="sidebar-logo">
-                        <img src={logo} style={{ height: 32, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
-                        <button className="show-mobile btn btn-ghost" onClick={() => setSidebarOpen(false)} style={{ background: 'none', padding: 4, color: '#fff' }}>
-                            <Icon name="x" size={20} />
-                        </button>
-                    </div>
-                    {items.map(item => (
-                        <SidebarItem
-                            key={item.id}
-                            id={item.id}
-                            icon={item.icon}
-                            label={item.label}
-                            active={view === item.id}
-                            onClick={() => { setView(item.id); setSidebarOpen(false); }}
-                        />
-                    ))}
-                    <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.15)' }}>
-                        <div role="button" tabIndex={0} className="sidebar-item" onClick={() => setDark(!dark)} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setDark(!dark)}>
-                            <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Modo claro' : 'Modo oscuro'}
-                        </div>
-                        <div role="button" tabIndex={0} className="sidebar-item" onClick={onLogout} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && onLogout()}>
-                            <Icon name="logOut" size={16} />Cerrar sesión
-                        </div>
-                        <div style={{ padding: '12px', fontSize: 11, color: 'rgba(255,255,255,.5)' }}>
-                            <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>empresa@demo.cl</div>
-                            <div>Plan Pro · 7/∞ docs</div>
-                        </div>
+
+            {/* Sidebar Overlay */}
+            {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} role="presentation" aria-hidden="true" />}
+
+            <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+                <div className="sidebar-logo">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <img src={icon} style={{ height: 24, filter: 'brightness(0) invert(1)' }} alt="" />
+                        FirmaRápida ⚡
                     </div>
                 </div>
-                {sidebarOpen && <div className="show-mobile" onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }} />}
-                <main className="main-content" style={{ flex: 1 }}>{children}</main>
+                {items.map(item => (
+                    <SidebarItem
+                        key={item.id}
+                        id={item.id}
+                        icon={item.icon}
+                        label={item.label}
+                        active={view === item.id}
+                        onClick={() => { setView(item.id); setSidebarOpen(false); }}
+                    />
+                ))}
+                <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.15)' }}>
+                    <div role="button" tabIndex={0} className="sidebar-item" onClick={() => setDark(!dark)} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && setDark(!dark)}>
+                        <Icon name={dark ? 'sun' : 'moon'} size={16} />{dark ? 'Modo claro' : 'Modo oscuro'}
+                    </div>
+                    <div role="button" tabIndex={0} className="sidebar-item" onClick={onLogout} onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && onLogout()}>
+                        <Icon name="logOut" size={16} />Cerrar sesión
+                    </div>
+                    <div style={{ padding: '12px', fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
+                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>Usuario Pro</div>
+                        <div>Clever Tech Ideas</div>
+                    </div>
+                </div>
             </div>
+            <div className="main-content fade-in">{children}</div>
         </div>
     );
 };
