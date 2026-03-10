@@ -180,6 +180,41 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
 };
 
 /* ──────────────────────────────────────────────
+   GOOGLE BRANDED BUTTON
+   ────────────────────────────────────────────── */
+const GoogleButton = ({ onClick, text = "Continuar con Google", style = {} }) => {
+    return (
+        <button
+            className="btn"
+            onClick={onClick}
+            style={{
+                background: '#fff',
+                color: '#3c4043',
+                border: '1px solid #dadce0',
+                fontWeight: '600',
+                padding: '10px 16px',
+                fontSize: '14px',
+                borderRadius: '10px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                ...style
+            }}
+        >
+            <svg width="18" height="18" viewBox="0 0 18 18">
+                <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.49h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.25h2.91c1.71-1.57 2.68-3.88 2.68-6.6z" fill="#4285F4" />
+                <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.25c-.8.54-1.83.86-3.05.86-2.34 0-4.33-1.58-5.04-3.7H.89v2.32C2.37 15.99 5.48 18 9 18z" fill="#34A853" />
+                <path d="M3.96 10.73c-.18-.54-.28-1.12-.28-1.73s.1-1.19.28-1.73V4.95H.89C.32 6.17 0 7.55 0 9s.32 2.83.89 4.05l3.07-2.32z" fill="#FBBC05" />
+                <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.48 0 2.37 2.01.89 4.95l3.07 2.32c.71-2.12 2.7-3.69 5.04-3.69z" fill="#EA4335" />
+            </svg>
+            {text}
+        </button>
+    );
+};
+
+/* ──────────────────────────────────────────────
    COMPONENTE TOAST (NOTIFICACIONES)
    ────────────────────────────────────────────── */
 const Toast = ({ message, type = 'success', onClose }) => {
@@ -220,8 +255,8 @@ const Toast = ({ message, type = 'success', onClose }) => {
    ────────────────────────────────────────────── */
 
 // TODO: Reemplaza estas con tus credenciales de Supabase Dashboard
-const SUPABASE_URL = 'https://ofaabmiuabgvrrdmzzwo.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYWFibWl1YWJndnJyZG16endvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDQwODQsImV4cCI6MjA4ODUyMDA4NH0.u6LHLmlwjdaX7__ipT1K9xXEkhRq1e3SKiZ4WjVqy2I';
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://ofaabmiuabgvrrdmzzwo.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYWFibWl1YWJndnJyZG16endvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDQwODQsImV4cCI6MjA4ODUyMDA4NH0.u6LHLmlwjdaX7__ipT1K9xXEkhRq1e3SKiZ4WjVqy2I';
 
 // Inicialización del cliente Supabase
 const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -252,7 +287,13 @@ const API = {
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.origin }
+                options: {
+                    redirectTo: window.location.origin,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent'
+                    }
+                }
             });
             if (error) throw error;
         } catch (err) {
@@ -370,9 +411,7 @@ const LoginModal = ({ onLogin, onClose }) => {
                 </form>
                 <div style={{ marginTop: 24, padding: '16px 0', borderTop: '1px solid var(--gray-100)', textAlign: 'center' }}>
                     <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 16 }}>O accede rápidamente con:</p>
-                    <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }} onClick={() => API.loginWithGoogle()}>
-                        <Icon name="log-in" size={16} /> Continuar con Google
-                    </button>
+                    <GoogleButton onClick={() => API.loginWithGoogle()} />
                 </div>
             </div>
         </div>
@@ -403,9 +442,12 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
                         <Icon name={dark ? 'sun' : 'moon'} size={14} />
                     </button>
                     <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px', fontSize: 13 }} onClick={onShowLogin}>Login</button>
-                    <button className="btn hide-mobile" style={{ background: '#fff', color: 'var(--primary)', fontWeight: 700, padding: '8px 12px', fontSize: 13 }} onClick={() => API.loginWithGoogle()}>
-                        Google
-                    </button>
+                    <GoogleButton
+                        onClick={() => API.loginWithGoogle()}
+                        text="Google"
+                        style={{ width: 'auto', padding: '8px 16px', fontSize: '13px', display: 'flex' }}
+                        className="hide-mobile"
+                    />
                     <button className="btn btn-green" style={{ padding: '8px 16px', fontSize: 13 }} onClick={onStartDemo}>Empieza</button>
                 </div>
             </nav>
@@ -501,9 +543,13 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
             <div style={{ background: 'linear-gradient(135deg,#1B2A6B,#0f1d4d)', padding: '64px 32px', textAlign: 'center' }}>
                 <h2 style={{ color: '#fff', fontSize: 32, fontWeight: 800, marginBottom: 16 }}>¿Listo para firmar sin papel?</h2>
                 <p style={{ color: 'rgba(255,255,255,.7)', marginBottom: 32 }}>Empieza gratis hoy. 10 documentos al mes, para siempre.</p>
-                <button className="btn btn-green" style={{ fontSize: 16, padding: '14px 32px' }} onClick={() => API.loginWithGoogle()}>
-                    Crear cuenta con Google ⚡
-                </button>
+                <div style={{ maxWidth: 300, margin: '0 auto' }}>
+                    <GoogleButton
+                        onClick={() => API.loginWithGoogle()}
+                        text="Crear cuenta con Google ⚡"
+                        style={{ padding: '14px 32px', fontSize: '16px' }}
+                    />
+                </div>
             </div>
 
             {/* FOOTER */}
