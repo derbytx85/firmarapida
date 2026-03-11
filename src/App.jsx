@@ -1,7 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import logo from './assets/logo.png';
-import icon from './assets/icon.png';
+
+// Logo SVG inline — no depende de archivos externos
+const LogoSVG = ({ height = 32, inverted = false }) => (
+    <svg height={height} viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="FirmaRápida">
+        <rect width="36" height="36" rx="8" y="2" fill={inverted ? '#fff' : '#1B2A6B'} />
+        <path d="M10 28 L18 12 L22 20 L26 14 L30 28" stroke={inverted ? '#1B2A6B' : '#00C896'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M20 22 L24 22" stroke={inverted ? '#1B2A6B' : '#fff'} strokeWidth="2" strokeLinecap="round" />
+        <text x="44" y="27" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="18" fill={inverted ? '#fff' : '#1B2A6B'}>Firma<tspan fill="#00C896">Rápida</tspan> ⚡</text>
+    </svg>
+);
+
+const IconSVG = ({ size = 32 }) => (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="10" fill="#1B2A6B" />
+        <path d="M10 30 L18 12 L22 22 L26 14 L32 30" stroke="#00C896" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+);
 
 /* ──────────────────────────────────────────────
    PALETA & TIPOGRAFÍA
@@ -441,8 +456,7 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
             {/* NAV */}
             <nav style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(27,42,107,0.97)', backdropFilter: 'blur(12px)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <img src={logo} style={{ height: 32, filter: 'brightness(0) invert(1)' }} alt="FirmaRápida" />
-                    <span className="hide-mobile" style={{ color: '#fff', fontWeight: 800, fontSize: 18 }}>FirmaRápida ⚡</span>
+                    <LogoSVG height={32} inverted={true} />
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <button className="btn btn-ghost hide-mobile" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px' }} onClick={() => setDark(!dark)}>
@@ -611,14 +625,19 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
         { id: 'settings', icon: 'settings', label: 'Configuración' },
     ];
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div>
+            {/* Header móvil - solo visible en pantallas pequeñas */}
             <div className="mobile-header">
-                <img src={icon} style={{ height: 36, objectFit: 'contain' }} alt="FirmaRápida" />
-                <button className="btn btn-ghost" onClick={() => setSidebarOpen(true)} style={{ padding: 8, background: 'none' }}>
+                <button
+                    className="btn btn-ghost"
+                    onClick={() => setSidebarOpen(true)}
+                    style={{ padding: 8, background: 'none' }}
+                    aria-label="Abrir menú"
+                >
                     <Icon name="layout" size={24} color="var(--primary)" />
                 </button>
-                <img src={logo} style={{ height: 28 }} alt="Logo" />
-                <div style={{ width: 40 }} /> {/* Spacer */}
+                <LogoSVG height={24} />
+                <div style={{ width: 40 }} />
             </div>
 
             {/* Sidebar Overlay */}
@@ -626,10 +645,8 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
 
             <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <img src={icon} style={{ height: 24, filter: 'brightness(0) invert(1)' }} alt="" />
-                        FirmaRápida ⚡
-                    </div>
+                    <IconSVG size={24} />
+                    <span style={{ marginLeft: 8 }}>FirmaRápida ⚡</span>
                 </div>
                 {items.map(item => (
                     <SidebarItem
@@ -800,8 +817,12 @@ const NewDocWizard = ({ onDone, onCancel, initialTemplate }) => {
     const [sent, setSent] = useState(false);
 
     const handleFileSelect = (e) => {
-        const file = e.target.files[0];
-        if (file) setDocName(file.name);
+        // Soporta tanto clic (input) como drag & drop
+        const file = e.target?.files?.[0] || e.dataTransfer?.files?.[0];
+        if (file) {
+            setDocName(file.name);
+            setSelectedTpl(null);
+        }
     };
 
     const addSigner = () => setSigners(s => [...s, { name: '', email: '', phone: '', type: 'simple' }]);
@@ -867,13 +888,27 @@ const NewDocWizard = ({ onDone, onCancel, initialTemplate }) => {
                         ))}
                     </div>
                     <p className="label">O sube tu propio documento</p>
-                    <input type="file" ref={fileInputRef} hidden onChange={handleFileSelect} accept=".pdf,.doc,.docx" />
-                    <div onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) setDocName(f.name); }}
-                        onClick={() => fileInputRef.current.click()}
-                        style={{ border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--gray-200)'}`, borderRadius: 12, padding: 40, textAlign: 'center', background: dragOver ? 'rgba(27,42,107,.04)' : 'var(--gray-50)', cursor: 'pointer', transition: 'all .2s' }}>
+                    <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileSelect} accept=".pdf,.doc,.docx" />
+                    <div
+                        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={e => { e.preventDefault(); setDragOver(false); handleFileSelect(e); }}
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                            border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--gray-200)'}`,
+                            borderRadius: 12,
+                            padding: '40px 20px',
+                            textAlign: 'center',
+                            background: dragOver ? 'rgba(27,42,107,.04)' : 'var(--gray-50)',
+                            cursor: 'pointer',
+                            transition: 'all .2s'
+                        }}
+                    >
                         <Icon name="upload" size={32} color="var(--gray-400)" />
-                        <p style={{ color: 'var(--gray-400)', marginTop: 12 }}>Arrastra tu PDF, DOC o DOCX aquí</p>
-                        <p style={{ color: 'var(--gray-400)', fontSize: 12 }}>o haz clic para buscar</p>
+                        <p style={{ color: 'var(--gray-400)', marginTop: 12, fontWeight: 500 }}>
+                            {docName ? `Archivo: ${docName}` : 'Arrastra tu PDF, DOC o DOCX aquí'}
+                        </p>
+                        <p style={{ color: 'var(--gray-400)', fontSize: 12 }}>o haz clic para buscar en tu equipo</p>
                     </div>
                     {docName && (
                         <div style={{ margin: '16px 0' }}>
@@ -1408,7 +1443,11 @@ export default function FirmaRapida() {
 
     // Listener de Autenticación Supabase
     useEffect(() => {
-        if (!supabase) return;
+        if (!supabase) {
+            // Sin Supabase configurado, salir del loading inmediatamente
+            setInitializing(false);
+            return;
+        }
 
         // Cargar sesión inicial
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1421,14 +1460,16 @@ export default function FirmaRapida() {
             setInitializing(false);
         });
 
-        // Escuchar cambios de sesión
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        // Escuchar cambios de sesión (incluyendo el redirect de Google OAuth)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth event:', event, session ? 'session OK' : 'no session');
             if (session) {
                 setAuth(true);
                 setIsDemo(false);
+                setShowLogin(false);
                 setView('dashboard');
                 loadDocs(false);
-            } else {
+            } else if (event === 'SIGNED_OUT') {
                 setAuth(false);
                 setIsDemo(false);
                 setView('landing');
@@ -1511,7 +1552,7 @@ export default function FirmaRapida() {
     if (initializing) return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F7F9FC' }}>
             <div style={{ textAlign: 'center' }}>
-                <img src={icon} style={{ height: 80, marginBottom: 20, animation: 'pulse 1.5s infinite' }} alt="FirmaRápida" />
+                <IconSVG size={80} />
                 <div style={{ fontWeight: 600, color: '#1B2A6B' }}>Cargando FirmaRápida...</div>
             </div>
             <style>{css}</style>
