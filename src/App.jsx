@@ -172,6 +172,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
         trash: 'M3 6h18 M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6 M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2',
         eye: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 100 6 3 3 0 000-6z',
         plus: 'M12 5v14 M5 12h14',
+        search: 'M21 21l-6-6 M15 10a5 5 0 11-10 0 5 5 0 0110 0z',
         home: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10',
         layout: 'M3 3h18v18H3z M3 9h18 M9 21V9',
         settings: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z',
@@ -386,7 +387,7 @@ const StatusBadge = ({ status }) => {
 /* ──────────────────────────────────────────────
    MODAL DE LOGIN
    ────────────────────────────────────────────── */
-const LoginModal = ({ onLogin, onClose }) => {
+const LoginModal = ({ onLogin, onGoogleClick, onClose }) => {
     const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
     const [loading, setLoading] = useState(false);
@@ -396,7 +397,6 @@ const LoginModal = ({ onLogin, onClose }) => {
         setLoading(true);
         try {
             await onLogin(email, pass);
-            onClose();
         } catch (err) {
             alert(err.message || 'Error al iniciar sesión');
         } finally {
@@ -406,7 +406,7 @@ const LoginModal = ({ onLogin, onClose }) => {
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20 }}>
-            <div className="card fade-in" style={{ width: '100%', maxWidth: 400, padding: 32, position: 'relative' }}>
+            <div className="card fade-in" style={{ width: '100%', maxWidth: 400, margin: '0 16px', position: 'relative' }}>
                 <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray-400)' }}>
                     <Icon name="x" size={20} />
                 </button>
@@ -430,8 +430,55 @@ const LoginModal = ({ onLogin, onClose }) => {
                 </form>
                 <div style={{ marginTop: 24, padding: '16px 0', borderTop: '1px solid var(--gray-100)', textAlign: 'center' }}>
                     <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 16 }}>O accede rápidamente con:</p>
-                    <GoogleButton onClick={() => API.loginWithGoogle()} />
+                    <GoogleButton onClick={onGoogleClick ? onGoogleClick : () => API.loginWithGoogle()} />
                 </div>
+            </div>
+        </div>
+    );
+};
+
+/* ──────────────────────────────────────────────
+   MODAL ONBOARDING (Mock Login Flow)
+   ────────────────────────────────────────────── */
+const OnboardingMockModal = ({ onComplete, defaultEmail = '', onClose }) => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState(defaultEmail);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setTimeout(() => {
+            onComplete({ name, email, plan: 'Free' });
+        }, 1200);
+    };
+
+    return (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20 }}>
+            <div className="card fade-in" style={{ width: '100%', maxWidth: 400, margin: '0 16px', position: 'relative' }}>
+                <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gray-400)' }}>
+                    <Icon name="x" size={20} />
+                </button>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <div style={{ width: 64, height: 64, background: 'var(--gray-100)', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name="users" size={28} color="var(--primary)" />
+                    </div>
+                    <h2 style={{ fontWeight: 800, color: 'var(--primary)' }}>Crea tu cuenta gratuita</h2>
+                    <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Completa tus datos para empezar a firmar sin límite de tiempo (10 docs/mes gratis).</p>
+                </div>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                        <label className="label">Correo electrónico</label>
+                        <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" />
+                    </div>
+                    <div>
+                        <label className="label">Tu Nombre</label>
+                        <input className="input" type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Juan Pérez" />
+                    </div>
+                    <button className="btn btn-green" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
+                        {loading ? 'Preparando tu cuenta...' : 'Comenzar a usar gratis'}
+                    </button>
+                </form>
             </div>
         </div>
     );
@@ -440,7 +487,7 @@ const LoginModal = ({ onLogin, onClose }) => {
 /* ──────────────────────────────────────────────
    LANDING PAGE
    ────────────────────────────────────────────── */
-const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
+const LandingPage = ({ onShowLogin, onStartDemo, onGoogleClick, dark, setDark }) => {
     const steps = [
         { icon: 'upload', title: 'Sube tu documento', desc: 'PDF, DOC o DOCX. O elige una plantilla lista para usar.' },
         { icon: 'send', title: 'Envía a los firmantes', desc: 'El firmante recibe un link único. Sin crear cuenta.' },
@@ -464,7 +511,7 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
                     </button>
                     <button className="btn btn-ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.1)', padding: '8px 12px', fontSize: 13 }} onClick={onShowLogin}>Acceder</button>
                     <GoogleButton
-                        onClick={() => API.loginWithGoogle()}
+                        onClick={onGoogleClick ? onGoogleClick : () => API.loginWithGoogle()}
                         text="Google"
                         style={{ width: 'auto', padding: '8px 16px', fontSize: '13px', display: 'flex' }}
                         className="hide-mobile"
@@ -566,7 +613,7 @@ const LandingPage = ({ onShowLogin, onStartDemo, dark, setDark }) => {
                 <p style={{ color: 'rgba(255,255,255,.7)', marginBottom: 32 }}>Empieza gratis hoy. 10 documentos al mes, para siempre.</p>
                 <div style={{ maxWidth: 300, margin: '0 auto' }}>
                     <GoogleButton
-                        onClick={() => API.loginWithGoogle()}
+                        onClick={onGoogleClick ? onGoogleClick : () => API.loginWithGoogle()}
                         text="Crear cuenta con Google ⚡"
                         style={{ padding: '14px 32px', fontSize: '16px' }}
                     />
@@ -617,7 +664,7 @@ const SidebarItem = ({ id, icon, label, active, onClick }) => {
     );
 };
 
-const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSidebarOpen, children }) => {
+const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSidebarOpen, user, children }) => {
     const items = [
         { id: 'dashboard', icon: 'home', label: 'Dashboard' },
         { id: 'templates', icon: 'layout', label: 'Plantillas' },
@@ -666,8 +713,9 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
                         <Icon name="logOut" size={16} />Cerrar sesión
                     </div>
                     <div style={{ padding: '12px', fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
-                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>Usuario Pro</div>
-                        <div>Clever Tech Ideas</div>
+                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.8)', marginBottom: 2 }}>{user?.name || 'Usuario'}</div>
+                        <div style={{ marginBottom: 4 }}>{user?.email || ''}</div>
+                        <div style={{ display: 'inline-block', padding: '2px 6px', background: 'rgba(255,255,255,.1)', borderRadius: 4, fontWeight: 600, color: user?.plan === 'Pro' ? '#00C896' : '#fff' }}>Plan {user?.plan || 'Free'}</div>
                     </div>
                 </div>
             </div>
@@ -679,7 +727,7 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
 /* ──────────────────────────────────────────────
    DASHBOARD
    ────────────────────────────────────────────── */
-const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc }) => {
+const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc, isDemo, user }) => {
     const [tab, setTab] = useState('all');
     const filtered = tab === 'all' ? docs : docs.filter(d => d.status === tab);
     const tabs = [{ id: 'all', label: 'Todos' }, { id: 'pending', label: 'Pendientes' }, { id: 'signed', label: 'Firmados' }, { id: 'expired', label: 'Vencidos' }];
@@ -792,10 +840,17 @@ const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc }) => {
                 )}
             </div>
 
-            {/* Demo note */}
-            <div className="otp-demo" style={{ marginTop: 20 }}>
-                ℹ️ Modo demo activo · Usuario: empresa@demo.cl · Plan Pro
-            </div>
+            {/* Demo / Plan note */}
+            {isDemo && (
+                <div className="otp-demo" style={{ marginTop: 20 }}>
+                    ℹ️ Modo demo activo · Las funciones completas requieren registrarse.
+                </div>
+            )}
+            {!isDemo && user?.plan === 'Free' && (
+                <div className="otp-demo" style={{ marginTop: 20, background: '#EFF6FF', borderColor: '#BFDBFE', color: '#1E3A8A' }}>
+                    ℹ️ Estás usando el <strong>Plan Free</strong> ({docs.length}/10 documentos usados este mes). <a href="#" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Actualizar a Pro →</a>
+                </div>
+            )}
         </div>
     );
 };
@@ -1287,24 +1342,50 @@ const TemplatesView = ({ onUse }) => {
 const CollaboratorsView = () => {
     const [selected, setSelected] = useState(null);
     const [bulkSel, setBulkSel] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const statusColor = { signed: 'var(--green)', pending: '#F59E0B', none: 'var(--gray-200)' };
     const toggle = (id) => setBulkSel(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+
+    const filteredCols = COLLABORATORS.filter(c => 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
                 <div>
                     <h1 className="section-title">Módulo RRHH</h1>
                     <p style={{ color: 'var(--gray-400)', marginTop: 4 }}>Gestiona documentos de tus colaboradores</p>
                 </div>
-                {bulkSel.length > 0 && (
-                    <button className="btn btn-green"><Icon name="send" size={16} />Envío masivo ({bulkSel.length})</button>
-                )}
+                <div style={{ display: 'flex', gap: 12 }}>
+                    {bulkSel.length > 0 && (
+                        <button className="btn btn-green"><Icon name="send" size={16} />Envío masivo ({bulkSel.length})</button>
+                    )}
+                    <button className="btn btn-primary"><Icon name="plus" size={16} />Nuevo colaborador</button>
+                </div>
             </div>
+            
+            {!selected && (
+                <div style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1, maxWidth: 320 }}>
+                        <Icon name="search" size={16} color="var(--gray-400)" style={{ position: 'absolute', left: 14, top: 12 }} />
+                        <input 
+                            className="input" 
+                            style={{ paddingLeft: 40 }} 
+                            placeholder="Buscar colaborador..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
+            )}
+
             {selected ? (
                 <div className="card fade-in">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                         <h2 style={{ fontWeight: 700 }}>{selected.name} <span style={{ fontSize: 14, color: 'var(--gray-400)', fontWeight: 400 }}>— {selected.role}</span></h2>
-                        <button className="btn btn-ghost" onClick={() => setSelected(null)}><Icon name="x" size={14} />Cerrar</button>
+                        <button className="btn btn-ghost" onClick={() => setSelected(null)}><Icon name="chevronRight" size={14} style={{ transform: 'rotate(180deg)' }} />Volver</button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16 }}>
                         {selected.docs.map((d, i) => (
@@ -1312,41 +1393,60 @@ const CollaboratorsView = () => {
                                 <Icon name="file" size={20} color="var(--primary)" />
                                 <div style={{ fontWeight: 600, marginTop: 8, marginBottom: 4 }}>{d.type}</div>
                                 <StatusBadge status={d.status === 'none' ? 'draft' : d.status} />
-                                {d.status !== 'signed' && <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: 12, fontSize: 12 }}><Icon name="send" size={12} />Enviar</button>}
+                                {d.status !== 'signed' && <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: 12, fontSize: 12 }}><Icon name="send" size={12} />Enviar para firma</button>}
                             </div>
                         ))}
+                        <div className="card" style={{ border: '2px dashed var(--gray-200)', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16, cursor: 'pointer', transition: 'background .2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(27,42,107,.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            <Icon name="plus" size={24} color="var(--gray-400)" />
+                            <div style={{ color: 'var(--gray-400)', marginTop: 8, fontWeight: 500, fontSize: 13 }}>Asignar documento</div>
+                        </div>
                     </div>
                 </div>
             ) : (
                 <div className="card">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style={{ width: 40 }}><input type="checkbox" onChange={e => setBulkSel(e.target.checked ? COLLABORATORS.map(c => c.id) : [])} /></th>
-                                <th>Colaborador</th>
-                                <th>Cargo</th>
-                                <th>Contrato</th>
-                                <th>Anexo</th>
-                                <th>Finiquito</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {COLLABORATORS.map(c => (
-                                <tr key={c.id}>
-                                    <td><input type="checkbox" checked={bulkSel.includes(c.id)} onChange={() => toggle(c.id)} /></td>
-                                    <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{c.name}</td>
-                                    <td>{c.role}</td>
-                                    {c.docs.map((d, i) => (
-                                        <td key={i}><span style={{ width: 12, height: 12, borderRadius: '50%', background: statusColor[d.status], display: 'inline-block', marginRight: 6 }} /><span style={{ fontSize: 13 }}>{d.status === 'signed' ? 'Firmado' : d.status === 'pending' ? 'Pendiente' : '—'}</span></td>
-                                    ))}
-                                    <td>
-                                        <button className="btn btn-ghost" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => setSelected(c)}><Icon name="folder" size={13} />Ver carpeta</button>
-                                    </td>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style={{ width: 40 }} className="hide-mobile"><input type="checkbox" onChange={e => setBulkSel(e.target.checked ? filteredCols.map(c => c.id) : [])} checked={bulkSel.length === filteredCols.length && filteredCols.length > 0} /></th>
+                                    <th>Colaborador</th>
+                                    <th>Cargo</th>
+                                    <th>Contrato</th>
+                                    <th>Anexo</th>
+                                    <th>Finiquito</th>
+                                    <th>Acciones</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredCols.map(c => (
+                                    <tr key={c.id}>
+                                        <td className="hide-mobile"><input type="checkbox" checked={bulkSel.includes(c.id)} onChange={() => toggle(c.id)} /></td>
+                                        <td data-label="Colaborador" style={{ fontWeight: 600, color: 'var(--primary)' }}>{c.name}</td>
+                                        <td data-label="Cargo">{c.role}</td>
+                                        {c.docs.map((d, i) => {
+                                            const lbls = ['Contrato', 'Anexo', 'Finiquito'];
+                                            return (
+                                                <td key={i} data-label={lbls[i]}>
+                                                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: statusColor[d.status], display: 'inline-block', marginRight: 6 }} />
+                                                    <span style={{ fontSize: 13 }}>{d.status === 'signed' ? 'Firmado' : d.status === 'pending' ? 'Pendiente' : '—'}</span>
+                                                </td>
+                                            );
+                                        })}
+                                        <td data-label="Acciones">
+                                            <button className="btn btn-ghost" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => setSelected(c)}><Icon name="folder" size={13} />Carpeta</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredCols.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: 32, color: 'var(--gray-400)' }}>
+                                            No se encontraron colaboradores
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>
@@ -1356,14 +1456,14 @@ const CollaboratorsView = () => {
 /* ──────────────────────────────────────────────
    SETTINGS
    ────────────────────────────────────────────── */
-const SettingsView = () => (
+const SettingsView = ({ user }) => (
     <div className="fade-in">
         <h1 className="section-title" style={{ marginBottom: 24 }}>Configuración</h1>
         <div style={{ display: 'grid', gap: 20, maxWidth: 600 }}>
             <div className="card">
                 <h3 style={{ fontWeight: 700, marginBottom: 16 }}>Cuenta</h3>
-                <div style={{ marginBottom: 12 }}><label className="label">Nombre empresa</label><input className="input" defaultValue="Empresa Demo" /></div>
-                <div style={{ marginBottom: 12 }}><label className="label">Email</label><input className="input" defaultValue="empresa@demo.cl" /></div>
+                <div style={{ marginBottom: 12 }}><label className="label">Nombre completo</label><input className="input" defaultValue={user?.name || ''} /></div>
+                <div style={{ marginBottom: 12 }}><label className="label">Email</label><input className="input" readOnly defaultValue={user?.email || ''} style={{ opacity: 0.7 }} /></div>
                 <div style={{ marginBottom: 20 }}><label className="label">RUT (opcional)</label><input className="input" placeholder="76.123.456-7" /></div>
                 <button className="btn btn-primary"><Icon name="check" size={14} />Guardar cambios</button>
             </div>
@@ -1371,8 +1471,8 @@ const SettingsView = () => (
                 <h3 style={{ fontWeight: 700, marginBottom: 16 }}>Plan actual</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--gray-50)', borderRadius: 12 }}>
                     <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, color: 'var(--primary)' }}>Plan Pro</div>
-                        <div style={{ fontSize: 13, color: 'var(--gray-400)' }}>Documentos ilimitados · $9.990/mes</div>
+                        <div style={{ fontWeight: 700, color: 'var(--primary)' }}>Plan {user?.plan || 'Free'}</div>
+                        <div style={{ fontSize: 13, color: 'var(--gray-400)' }}>{user?.plan === 'Pro' ? 'Documentos ilimitados' : '10 documentos / mes'}</div>
                     </div>
                     <span className="badge badge-green">Activo</span>
                 </div>
@@ -1425,6 +1525,9 @@ export default function FirmaRapida() {
         try { return localStorage.getItem('fr_theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches; } catch { return false; }
     });
     const [auth, setAuth] = useState(false);
+    const [user, setUser] = useState(null);
+    const [showMockOnboarding, setShowMockOnboarding] = useState(false);
+    const [onboardingEmail, setOnboardingEmail] = useState('');
     const [isDemo, setIsDemo] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
     const [initializing, setInitializing] = useState(true);
@@ -1454,6 +1557,11 @@ export default function FirmaRapida() {
             if (session) {
                 setAuth(true);
                 setIsDemo(false);
+                setUser({
+                    name: session.user?.user_metadata?.full_name || session.user?.user_metadata?.name || 'Usuario',
+                    email: session.user?.email || '',
+                    plan: 'Free'
+                });
                 setView('dashboard');
                 loadDocs(false);
             }
@@ -1466,12 +1574,18 @@ export default function FirmaRapida() {
             if (session) {
                 setAuth(true);
                 setIsDemo(false);
+                setUser({
+                    name: session.user?.user_metadata?.full_name || session.user?.user_metadata?.name || 'Usuario',
+                    email: session.user?.email || '',
+                    plan: 'Free'
+                });
                 setShowLogin(false);
                 setView('dashboard');
                 loadDocs(false);
             } else if (event === 'SIGNED_OUT') {
                 setAuth(false);
                 setIsDemo(false);
+                setUser(null);
                 setView('landing');
             }
         });
@@ -1496,23 +1610,55 @@ export default function FirmaRapida() {
 
     const showToast = (message, type = 'success') => setToast({ message, type });
 
+    const handleGoogleClick = () => {
+        if (!API.isConfigured()) {
+            setShowLogin(false);
+            setOnboardingEmail('');
+            setShowMockOnboarding(true);
+        } else {
+            API.loginWithGoogle();
+        }
+    };
+
+    const handleOnboardingComplete = (userData) => {
+        setUser(userData);
+        setShowMockOnboarding(false);
+        setAuth(true);
+        setIsDemo(false);
+        setView('dashboard');
+        showToast('¡Cuenta creada! Bienvenido a tu plan Free');
+        loadDocs(false);
+    };
+
     const handleLogin = async (email, pass) => {
         try {
+            if (!API.isConfigured()) {
+                setShowLogin(false);
+                setOnboardingEmail(email);
+                setShowMockOnboarding(true);
+                return;
+            }
             const data = await API.login(email, pass);
             setAuth(true);
             setIsDemo(false);
+            setUser({
+                name: data?.user?.user_metadata?.full_name || 'Usuario',
+                email: email,
+                plan: 'Free'
+            });
+            setShowLogin(false);
             setView('dashboard');
             showToast('¡Bienvenido de nuevo!');
             loadDocs();
         } catch (e) {
-            showToast(e.message, 'error');
-            throw e; // Relanzar para el modal
+            throw e;
         }
     };
 
     const handleStartDemo = () => {
         setAuth(true);
         setIsDemo(true);
+        setUser({ name: 'Usuario Demo', email: 'empresa@demo.cl', plan: 'Pro' });
         setView('dashboard');
         setDocs(DEMO_DOCS);
         showToast('Modo Prueba activado', 'info');
@@ -1563,19 +1709,20 @@ export default function FirmaRapida() {
         <>
             <style>{css}</style>
             {!auth ? (
-                <LandingPage onShowLogin={() => setShowLogin(true)} onStartDemo={handleStartDemo} dark={dark} setDark={setDark} />
+                <LandingPage onShowLogin={() => setShowLogin(true)} onStartDemo={handleStartDemo} onGoogleClick={handleGoogleClick} dark={dark} setDark={setDark} />
             ) : (
-                <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
-                    {view === 'dashboard' && <Dashboard docs={docs} setView={setView} setCurrentDoc={setCurrentDoc} onNewDoc={handleNewDoc} />}
+                <AppShell view={view} setView={setView} dark={dark} setDark={setDark} onLogout={handleLogout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} user={user}>
+                    {view === 'dashboard' && <Dashboard docs={docs} setView={setView} setCurrentDoc={setCurrentDoc} onNewDoc={handleNewDoc} isDemo={isDemo} user={user} />}
                     {view === 'newdoc' && <NewDocWizard initialTemplate={selectedTemplate} onDone={handleDocDone} onCancel={() => { setSelectedTemplate(null); setView('dashboard'); }} />}
                     {view === 'sign' && <SignView doc={currentDoc} onBack={() => setView('dashboard')} />}
                     {view === 'templates' && <TemplatesView onUse={handleUseTemplate} />}
                     {view === 'collaborators' && <CollaboratorsView />}
-                    {view === 'settings' && <SettingsView />}
+                    {view === 'settings' && <SettingsView user={user} />}
                     {showOnboarding && view === 'dashboard' && <OnboardingTooltip onClose={() => setShowOnboarding(false)} />}
                 </AppShell>
             )}
-            {showLogin && <LoginModal onLogin={handleLogin} onClose={() => setShowLogin(false)} />}
+            {showLogin && <LoginModal onLogin={handleLogin} onGoogleClick={handleGoogleClick} onClose={() => setShowLogin(false)} />}
+            {showMockOnboarding && <OnboardingMockModal onComplete={handleOnboardingComplete} defaultEmail={onboardingEmail} onClose={() => setShowMockOnboarding(false)} />}
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
         </>
     );
