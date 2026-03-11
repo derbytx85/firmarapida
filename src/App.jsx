@@ -274,9 +274,9 @@ const Toast = ({ message, type = 'success', onClose }) => {
    SUPABASE CLIENT & CONFIG
    ────────────────────────────────────────────── */
 
-// TODO: Reemplaza estas con tus credenciales de Supabase Dashboard
-const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 'https://ofaabmiuabgvrrdmzzwo.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mYWFibWl1YWJndnJyZG16endvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NDQwODQsImV4cCI6MjA4ODUyMDA4NH0.u6LHLmlwjdaX7__ipT1K9xXEkhRq1e3SKiZ4WjVqy2I';
+// TODO: Reemplaza estas con tus credenciales de Supabase Dashboard (o déjalas vacías para usar el modo Mock)
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
 
 // Inicialización del cliente Supabase
 const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -654,7 +654,7 @@ const SidebarItem = ({ id, icon, label, active, onClick }) => {
         <div
             role="button"
             tabIndex={0}
-            className={`sidebar - item ${active ? 'active' : ''} `}
+            className={`sidebar-item ${active ? 'active' : ''}`}
             onClick={onClick}
             onKeyDown={handleKeyDown}
             aria-current={active ? 'page' : undefined}
@@ -683,7 +683,7 @@ const AppShell = ({ view, setView, dark, setDark, onLogout, sidebarOpen, setSide
                 >
                     <Icon name="layout" size={24} color="var(--primary)" />
                 </button>
-                <LogoSVG height={24} />
+                <LogoSVG height={24} inverted={dark} />
                 <div style={{ width: 40 }} />
             </div>
 
@@ -746,7 +746,7 @@ const Dashboard = ({ docs, setView, setCurrentDoc, onNewDoc, isDemo, user }) => 
     };
     return (
         <div className="fade-in">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
                 <div>
                     <h1 className="section-title">Mis documentos</h1>
                     <p style={{ color: 'var(--gray-400)', marginTop: 4 }}>Gestiona todos tus documentos para firma</p>
@@ -1283,6 +1283,7 @@ const SignView = ({ doc, onBack }) => {
                     <button className="btn btn-green" style={{ width: '100%', justifyContent: 'center', fontSize: 16, padding: '14px', opacity: canSign ? 1 : .5 }} disabled={!canSign} onClick={() => setSigned(true)}>
                         <Icon name="pen" size={18} />Firmar documento
                     </button>
+                    {onBack && <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }} onClick={onBack}>← Cancelar</button>}
                 </div>
             </div>
         </div>
@@ -1493,7 +1494,7 @@ const OnboardingTooltip = ({ onClose }) => {
     ];
     const t = tips[step];
     return (
-        <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000, maxWidth: 320 }}>
+        <div style={{ position: 'fixed', bottom: 24, right: 'auto', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, width: 'calc(100% - 48px)', maxWidth: 360 }}>
             <div className="card" style={{ border: '2px solid var(--primary)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Bienvenido/a · {step + 1}/3</span>
